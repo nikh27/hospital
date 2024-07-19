@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content">
+    <div class="id-card">
+        <div class="header">
+            <h2>Dr. {{ user.get_full_name }}'s ID Card</h2>
+        </div>
+        <div class="profile-picture">
+            <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+        </div>
+        <div class="details">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>First Name:</strong> {{ user.first_name }}</p>
+            <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+            <p><strong>Address:</strong> {{ user.address_line1 }}</p>
+            <p><strong>City:</strong> {{ user.city }}</p>
+            <p><strong>State:</strong> {{ user.state }}</p>
+            <p><strong>Pincode:</strong> {{ user.pincode }}</p>
+            <p><strong>User Type:</strong> Doctor</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

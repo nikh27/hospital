@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Blog Post</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 30px;
+            max-width: 800px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .container h1 {
+            margin-bottom: 20px;
+            color: #28a745;
+        }
+
+        .btn-primary {
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            padding: 10px 20px;
+        }
+
+        .btn-primary:hover {
+            background-color: #218838;
+            border: none;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            padding: 10px 20px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border: none;
+        }
+
+        .form-group button {
+            margin-right: 10px;
+        }
+
+        .back-link {
+            font-size: 20px;
+            color: #28a745;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            box-shadow: none;
+        }
+
+        .form-control:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <a href="{% url 'doctor_blog_dashboard' %}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back</a>
+
+        <h1>Edit Blog Post</h1>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-group">
+                <button type="submit" name="save_draft" class="btn btn-secondary">Save as Draft</button>
+                <button type="submit" name="publish" class="btn btn-success">Publish</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

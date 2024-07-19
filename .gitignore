@@ -1,0 +1,24 @@
+# Ignore Python bytecode files
+*.pyc
+__pycache__/
+
+# Ignore virtual environment directories
+venv/
+env/
+/env
+
+# Ignore Django migrations
+*/migrations/
+
+# Ignore dadtabase files
+*.sqlite3
+
+# Ignore static files
+staticfiles/
+
+# Ignore media files
+media/
+
+# Ignore IDE specific files
+.vscode/
+.idea/

@@ -1,0 +1,56 @@
+    {% extends 'base2.html' %}
+
+    {% block content %}
+<body>
+    <div class="container mt-5">
+        <div class="mb-4">
+            <!-- Search Bar -->
+            <form method="GET" action="{% url 'patient_blog_dashboard' %}" class="search-bar">
+                <input type="search" name="query" placeholder="Search" aria-label="Search" value="{{ request.GET.query }}">
+                <button type="submit"><i class="fas fa-search"></i></button>
+            </form>
+        </div>
+
+        <!-- Categories -->
+        <div class="mb-4 category-select">
+            <h5>Categories</h5>
+            <form method="GET" action="{% url 'patient_blog_dashboard' %}">
+                <input type="hidden" name="query" value="{{ request.GET.query }}">
+                <select name="category" class="form-control" onchange="this.form.submit()">
+                    {% for key, value in categories %}
+                    <option value="{{ key }}" {% if key == selected_category %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        <!-- Blog Posts -->
+        <div class="blog-posts">
+            {% for post in blog_posts %}
+            <div class="blog-card mb-4">
+                <div class="d-flex">
+                    <img src="{{ post.image.url }}" class="blog-card-img" alt="{{ post.title }}">
+                    <div class="blog-card-body">
+                        <div>
+                            <h5 class="blog-card-title">{{ post.title }}</h5>
+                            <p class="blog-card-text">{{ post.summary|truncatewords:15 }}</p>
+                            <p class="text-muted">{{ post.get_category_display }}</p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'blog_post_detail' post.id %}" class="btn btn-sm btn-success">Read More</a>
+                            <p class="card-text"><small class="text-muted">Updated on {{ post.updated_at|date:"F j, Y" }}</small></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p>No blog posts available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+  
+</body>
+</html>
+
+{% endblock %}

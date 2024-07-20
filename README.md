@@ -6,34 +6,9 @@ This is a simple hospital management application built using Django.
 
 The project is deployed and can be accessed at: [Django Hospital Project](https://nikh27.pythonanywhere.com/)
 
-## Project Structure
-
-hospital/
-├── hospital/
-│ ├── pycache/
-│ ├── init.py
-│ ├── asgi.py
-│ ├── settings.py
-│ ├── urls.py
-│ ├── wsgi.py
-├── user/
-│ ├── pycache/
-│ ├── migrations/
-│ ├── templates/
-│ ├── init.py
-│ ├── admin.py
-│ ├── apps.py
-│ ├── forms.py
-│ ├── models.py
-│ ├── tests.py
-│ ├── urls.py
-│ ├── views.py
-├── db.sqlite3
-├── manage.py
-├── requirements.txt
-├── .gitignore
-└── README.md
-
+## Demo video
+[video 1](https://drive.google.com/file/d/1aCtSvAhmaDWQMvUM9p3LC2csvlYXV_Nd/view?usp=sharing)
+[video 2](https://drive.google.com/file/d/1QzYvLGdTGPjBR0s-qUk16AArFOZHQGPP/view?usp=sharing)
 
 ## Features
 

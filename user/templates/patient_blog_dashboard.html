@@ -1,14 +1,17 @@
-    {% extends 'base2.html' %}
+{% extends 'base2.html' %}
 
-    {% block content %}
+{% block content %}
 <body>
     <div class="container mt-5">
-        <div class="mb-4">
+        <div class="mb-4 d-flex justify-content-between align-items-center">
             <!-- Search Bar -->
             <form method="GET" action="{% url 'patient_blog_dashboard' %}" class="search-bar">
                 <input type="search" name="query" placeholder="Search" aria-label="Search" value="{{ request.GET.query }}">
                 <button type="submit"><i class="fas fa-search"></i></button>
             </form>
+            {% if user.is_authenticated and user.user_type == 'D' %}
+            <a href="{% url 'doctor_blog_dashboard' %}" class="btn btn-primary my-posts-btn"><i class="fa-solid fa-user-md"></i> My Posts</a>
+            {% endif %}
         </div>
 
         <!-- Categories -->
@@ -48,8 +51,6 @@
             {% endfor %}
         </div>
     </div>
-
-  
 </body>
 </html>
 

@@ -62,9 +62,9 @@ def doctor_blog_dashboard(request):
     if request.user.user_type != 'D':
         raise PermissionDenied
     user = request.user
-    published_posts = BlogPost.objects.filter(author=user, is_draft=False)
-    draft_posts = BlogPost.objects.filter(author=user, is_draft=True)
-    all_posts = BlogPost.objects.filter(author=user)
+    published_posts = BlogPost.objects.filter(author=user, is_draft=False).order_by('-updated_at').distinct()
+    draft_posts = BlogPost.objects.filter(author=user, is_draft=True).order_by('-updated_at').distinct()
+    all_posts = BlogPost.objects.filter(author=user).order_by('-updated_at').distinct()
     
     context = {
         'published_posts': published_posts,
@@ -76,28 +76,22 @@ def doctor_blog_dashboard(request):
 
 
 def patient_blog_dashboard(request):
-    if request.user.user_type != 'P':
-        raise PermissionDenied
-
-    # Get the search query and category filter from GET parameters
     query = request.GET.get('query', '')
     category = request.GET.get('category', 'All')
 
-    # Filter blog posts
-    filters = Q(author__user_type='D')  # Only show posts by doctors
+    filters = Q(author__user_type='D', is_draft=False) 
     if query:
         filters &= Q(title__icontains=query) | Q(summary__icontains=query)
     if category != 'All':
         filters &= Q(category=category)
 
     blog_posts = BlogPost.objects.filter(filters).order_by('-updated_at').distinct()
-    
-    # Define categories for the sidebar
+
     categories = BlogPost.CATEGORY_CHOICES
 
     context = {
         'blog_posts': blog_posts,
-        'categories': [('All', 'All Categories')] + list(categories),  # Add 'All Categories' option
+        'categories': [('All', 'All Categories')] + list(categories),
         'selected_category': category
     }
 
@@ -115,7 +109,7 @@ def create_blog_post(request):
             blog_post.author = request.user
             blog_post.is_draft = 'is_draft' in request.POST and request.POST['is_draft'] == 'True'
             blog_post.save()
-            return redirect('doctor_dashboard')
+            return redirect('doctor_blog_dashboard')
     else:
         form = BlogPostForm()
     return render(request, 'create_blog_post.html', {'form': form})

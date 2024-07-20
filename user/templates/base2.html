@@ -219,8 +219,13 @@ body {
     <div class="sidebar">
         <h2>{{ user.get_full_name }}</h2>
         <div class="nav-links">
+            {% if user_type == 'D' %}
+            <a href="{% url 'doctor_dashboard' %}">Dashboard</a>
+            <a href="{% url 'doctor_blog_dashboard' %}">Blog</a>
+            {% elif user_type == 'P' %}
             <a href="{% url 'patient_dashboard' %}">Dashboard</a>
             <a href="{% url 'patient_blog_dashboard' %}">Blog</a>
+            {% endif %}
             <a href="{% url 'logout' %}">Logout</a>
             <button class="delete" onclick="confirmDelete()">Delete Account</button>
         </div>

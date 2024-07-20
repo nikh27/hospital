@@ -54,6 +54,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'hospital.urls'
 
+def user_type(request):
+    return {
+        'user_type': request.user.user_type if request.user.is_authenticated else None
+    }
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -66,6 +71,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
+                'hospital.settings.user_type'
             ],
         },
     },

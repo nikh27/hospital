@@ -54,6 +54,19 @@
             border: none;
             cursor: pointer;
             display: block;
+            position: relative;
+        }
+
+        .sidebar .nav-links a .badge,
+        .sidebar .nav-links button .badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 5px 10px;
+            font-size: 0.8rem;
         }
 
         .sidebar .nav-links a:hover,
@@ -134,7 +147,6 @@
         .actions .delete:hover {
             background-color: #D32F2F;
         }
-        
     </style>
 </head>
 <body>
@@ -144,9 +156,16 @@
             {% if user_type == 'D' %}
             <a href="{% url 'doctor_dashboard' %}">Dashboard</a>
             <a href="{% url 'doctor_blog_dashboard' %}">Blog</a>
+            <a href="{% url 'doctor_appointments' %}">
+                Appointments
+                {% if appointments_count > 0 %}
+                <span class="badge">{{ appointments_count }}</span>
+                {% endif %}
+            </a>
             {% elif user_type == 'P' %}
             <a href="{% url 'patient_dashboard' %}">Dashboard</a>
             <a href="{% url 'patient_blog_dashboard' %}">Blog</a>
+            <a href="{% url 'appointments' %}">Appointments</a>
             {% endif %}
             <a href="{% url 'logout' %}">Logout</a>
             <button class="delete" onclick="confirmDelete()">Delete Account</button>

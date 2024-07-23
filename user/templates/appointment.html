@@ -1,0 +1,270 @@
+{% extends 'base2.html' %}
+{% block content %}
+    <style>
+        /* appointment.css */
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .header h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .search-bar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+
+        .search-bar input[type="text"] {
+            width: 50%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .search-bar button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .search-bar button:hover {
+            background-color: #218838;
+        }
+
+        .appointment-options {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .appointment-options .btn-option {
+            margin: 0 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            color: #495057;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .appointment-options .btn-option.active,
+        .appointment-options .btn-option:hover {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .doctor-list, .appointments {
+            display: none;
+        }
+
+        .doctor-list.active, .appointments.active {
+            display: block;
+        }
+
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            transition: box-shadow 0.3s;
+        }
+
+        .list-group-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-group-item .profile-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+
+        .list-group-item .ml-3 {
+            flex: 1;
+        }
+
+        .list-group-item .charge-info {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .list-group-item .btn-success {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .rating .fas {
+            color: #ffc107;
+        }
+
+        .rating .fas.checked {
+            color: #ffd700;
+        }
+
+        .appointment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            transition: box-shadow 0.3s;
+        }
+
+        .appointment-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .appointment-item .appointment-info {
+            flex: 1;
+        }
+
+        .appointment-item .appointment-date {
+            text-align: right;
+            color: #888;
+        }
+
+        .appointment-item .btn-details {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .appointment-item .btn-details:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Appointment</h1>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar mb-4">
+        <input type="text" id="searchInput" placeholder="Search by name..." onkeyup="searchDoctors()">
+        <button type="button" onclick="searchDoctors()">Search</button>
+    </div>
+
+    <!-- Appointment Options -->
+    <div class="appointment-options mb-4">
+        <button id="doctorListBtn" class="btn btn-option active" onclick="showDoctors()">Doctor List</button>
+        <button id="appointmentsBtn" class="btn btn-option" onclick="showAppointments()">Your Appointments</button>
+    </div>
+
+    <!-- Doctor List -->
+    <div id="doctorList" class="doctor-list active">
+        <h2>Doctor List</h2>
+        {% if doctors %}
+            <ul class="list-group">
+                {% for doctor in doctors %}
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ doctor.profile_picture.url }}" alt="{{ doctor.get_full_name }}" class="profile-img">
+                        <div class="ml-3">
+                            <span class="d-block doctor-name font-weight-bold">{{ doctor.get_full_name }}</span>
+                            <span class="d-block">Specialty Care</span>
+                            <div class="rating">
+                                <span>Rating: </span>
+                                {% for i in "12345" %}
+                                    <i class="fas fa-star {% if i|add:"0" <= doctor.rating %}checked{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="charge-info text-right">
+                        {% if doctor.charge %}
+                            <span>Charge: {{ doctor.charge }}</span>
+                        {% else %}
+                            <span>Charge: <strong>Free</strong></span>
+                        {% endif %}
+                        <a href="{% url 'book_appointment' doctor_id=doctor.id %}" class="btn btn-success">Book Appointment</a>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No doctors available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Appointments Section -->
+    <div id="appointments" class="appointments">
+        <h2>Your Appointments</h2>
+        {% if appointments %}
+            <ul class="list-group">
+                {% for appointment in appointments %}
+                <li class="appointment-item">
+                    <div class="appointment-info">
+                        <h4>Dr. {{ appointment.doctor.get_full_name }}</h4>
+                        <p>Date: {{ appointment.date }}</p>
+                        <p>Time: {{ appointment.start_time }}</p>
+                    </div>
+                    <div class="appointment-date">
+                        <p>{{ appointment.created_at|date:"Y-m-d H:i" }}</p>
+                        <a href="{% url 'appointment_confirmation' appointment_id=appointment.id %}" class="btn btn-details">Details</a>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No appointments booked right now.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function searchDoctors() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const listItems = document.querySelectorAll('.doctor-list .list-group-item');
+            
+            listItems.forEach(item => {
+                const name = item.querySelector('.doctor-name').textContent.toLowerCase();
+                if (name.includes(input)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function showDoctors() {
+            document.getElementById('doctorList').classList.add('active');
+            document.getElementById('appointments').classList.remove('active');
+            document.getElementById('doctorListBtn').classList.add('active');
+            document.getElementById('appointmentsBtn').classList.remove('active');
+        }
+
+        function showAppointments() {
+            document.getElementById('doctorList').classList.remove('active');
+            document.getElementById('appointments').classList.add('active');
+            document.getElementById('doctorListBtn').classList.remove('active');
+            document.getElementById('appointmentsBtn').classList.add('active');
+        }
+    </script>
+</body>
+
+{% endblock %}

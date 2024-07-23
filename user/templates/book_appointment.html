@@ -1,0 +1,117 @@
+{% extends "base2.html" %}
+
+{% block content %}
+
+<div class="header">
+    <h1>Book Appointment</h1>
+</div>
+<div class="content2">
+    <div class="doctor-info">
+        <img src="{{ doctor.profile_picture.url }}" alt="{{ doctor.get_full_name }}" class="profile-img">
+        <div class="doctor-details">
+            <h2>Dr. {{ doctor.get_full_name }}</h2>
+            <p>Speciality: {{ doctor.speciality }}</p>
+            {% if doctor.charge %}
+                <p>Charge: {{ doctor.charge }}</p>
+            {% else %}
+                <p><strong>Free</strong></p>
+            {% endif %}
+        </div>
+    </div>
+    <form id="appointmentForm" method="post" action="{% url 'book_appointment' doctor_id=doctor.id %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-confirm">Confirm Appointment</button>
+    </form>
+</div>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+    }
+
+    .header {
+        background-color: #28a745;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        border-radius: 0 0 10px 10px;
+    }
+
+    .content2 {
+        background-color: #fff;
+        padding: 40px;
+        margin: 20px auto;
+        max-width: 800px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .doctor-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .profile-img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        margin-right: 20px;
+        object-fit: cover;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .doctor-details h2 {
+        margin: 0;
+        color: #333;
+        font-size: 24px;
+    }
+
+    .doctor-details p {
+        margin: 5px 0;
+        color: #666;
+        font-size: 16px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    form .btn-confirm {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        margin-top: 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #28a745;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    form .btn-confirm:hover {
+        background-color: #218838;
+    }
+
+    form p {
+        width: 100%;
+    }
+</style>
+
+<script>
+    document.getElementById("appointmentForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        if (confirm("Are you sure you want to confirm this appointment?")) {
+            this.submit();
+        }
+    });
+</script>
+
+{% endblock %}

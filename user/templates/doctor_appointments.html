@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>/* Styles for the appointments list */
+    .container {
+        max-width: 1200px;
+        margin: auto;
+    }
+    
+    .list-group-item {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        padding: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .profile-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .profile-img {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin-right: 15px;
+        object-fit: cover;
+    }
+    
+    .info h5 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    
+    .info p {
+        margin: 5px 0;
+        color: #666;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-buttons .btn {
+        padding: 10px 20px;
+        border-radius: 5px;
+    }
+    
+    .details {
+        margin-top: 15px;
+    }
+    
+    .details-toggle {
+        display: inline-block;
+        color: #007bff;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    .details-toggle:hover {
+        text-decoration: underline;
+    }
+    
+    .details-content {
+        display: none;
+        margin-top: 10px;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+    }
+    
+    .details-content p {
+        margin: 5px 0;
+    }
+    </style>
+<div class="container mt-5">
+    <h2>Appointments</h2>
+    
+    <!-- Messages section -->
+    {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <ul class="list-group">
+        {% for appointment in appointments %}
+        <li class="list-group-item appointment-item">
+            <div class="d-flex">
+                <!-- Left side with user profile picture and name -->
+                <div class="profile-info">
+                    <img src="{{ appointment.patient.profile_picture.url }}" alt="{{ appointment.patient.get_full_name }}" class="profile-img">
+                    <div class="info">
+                        <h5>{{ appointment.patient.get_full_name }}</h5>
+                        <p>Date: {{ appointment.date }}</p>
+                        <p>Time: {{ appointment.start_time }} - {{ appointment.end_time }} (45 min)</p>
+                    </div>
+                </div>
+                
+                <!-- Right side with accept/reject buttons -->
+                {% if appointment.status == 'P' %}
+                <div class="action-buttons">
+                    <form method="post" action="{% url 'update_appointment_status' appointment.id 'A' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-success" type="submit">Accept</button>
+                    </form>
+                    <form method="post" action="{% url 'update_appointment_status' appointment.id 'R' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-danger" type="submit">Reject</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+            <!-- Details section -->
+            <div class="details">
+                <a href="#" class="details-toggle">More Details</a>
+                <div class="details-content">
+                    <p><strong>Email:</strong> {{ appointment.patient.email }}</p>
+                    <p><strong>Speciality:</strong> {{ appointment.speciality }}</p>
+                    <p><strong>Description:</strong> {{ appointment.description }}</p>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggles = document.querySelectorAll('.details-toggle');
+        
+        toggles.forEach(toggle => {
+            toggle.addEventListener('click', function(event) {
+                event.preventDefault();
+                const content = this.nextElementSibling;
+                const isVisible = content.style.display === 'block';
+                
+                document.querySelectorAll('.details-content').forEach(detail => {
+                    detail.style.display = 'none';
+                });
+                
+                content.style.display = isVisible ? 'none' : 'block';
+            });
+        });
+    });
+</script>
+{% endblock %}

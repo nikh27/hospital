@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect,get_object_or_404
+from django.http.response import JsonResponse
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth import login, authenticate, logout
@@ -31,12 +32,45 @@ def login_view(request):
             messages.error(request, 'Invalid username or password.')
     return render(request, 'login.html')
 
-
 @login_required
 def doctor_dashboard(request):
-    if request.user.user_type != 'D':
-        raise PermissionDenied
-    return render(request, 'doctor_dashboard.html', {'user': request.user})
+    user = request.user
+    if user.user_type == 'D':
+        appointments = Appointment.objects.filter(doctor=user, viewed=False)
+        appointments_count = appointments.count()
+    else:
+        appointments_count = 0
+
+    context = {
+        'user': user,
+        'user_type': user.user_type,
+        'appointments_count': appointments_count,
+    }
+    return render(request, 'doctor_dashboard.html', context)
+
+@login_required
+def doctor_appointments(request):
+    user = request.user
+    appointments = Appointment.objects.filter(doctor=user)
+    appointments.update(viewed=True)
+    context = {
+        'appointments': appointments,
+    }
+    return render(request, 'doctor_appointments.html', context)
+
+@login_required
+def update_appointment_status(request, appointment_id, status):
+    appointment = Appointment.objects.get(id=appointment_id)
+    if status == 'A':
+        appointment.status = 'Accepted'
+        messages.success(request, 'Appointment accepted successfully.')
+    elif status == 'R':
+        appointment.status = 'Rejected'
+        messages.error(request, 'Appointment rejected.')
+    appointment.save()
+    return redirect('doctor_appointments')
+
+
 
 @login_required
 def patient_dashboard(request):
@@ -72,6 +106,7 @@ def doctor_blog_dashboard(request):
         'all_posts': all_posts,
     }
     return render(request, 'doctor_blog_dashboard.html', context)
+
 
 
 
@@ -158,3 +193,31 @@ def delete_blog_post(request, post_id):
         return redirect('doctor_blog_dashboard')
     
     return render(request, 'doctor_dashboard.html', {'user': request.user})
+
+@login_required
+def appointment_page(request):
+    doctors = CustomUser.objects.filter(user_type='D')
+    appointments = Appointment.objects.filter(patient=request.user)
+    return render(request, 'appointment.html', {'doctors': doctors,'appointments':appointments})
+
+@login_required
+def book_appointment(request, doctor_id):
+    doctor = get_object_or_404(CustomUser, id=doctor_id, user_type='D')
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.patient = request.user
+            appointment.doctor = doctor
+            appointment.save()
+            return redirect('appointment_confirmation', appointment_id=appointment.id)
+    else:
+        form = AppointmentForm()
+
+    return render(request, 'book_appointment.html', {'form': form, 'doctor': doctor})
+
+@login_required
+def appointment_confirmation(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    return render(request, 'appointment_confirmation.html', {'appointment': appointment})
+

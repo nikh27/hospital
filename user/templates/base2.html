@@ -84,7 +84,7 @@ body {
 .header {
     background-color: #28a745;
     color: white;
-    padding: 10px 0;
+    padding: 10px 10px;
     border-radius: 10px 10px 0 0;
 }
 
@@ -212,7 +212,6 @@ body {
     margin-bottom: 20px;
 }
 
-
     </style>
 </head>
 <body>
@@ -222,9 +221,16 @@ body {
             {% if user_type == 'D' %}
             <a href="{% url 'doctor_dashboard' %}">Dashboard</a>
             <a href="{% url 'doctor_blog_dashboard' %}">Blog</a>
+            <a href="{% url 'doctor_appointments' %}">
+                Appointments
+                {% if appointments_count > 0 %}
+                <span class="badge">{{ appointments_count }}</span>
+                {% endif %}
+            </a>
             {% elif user_type == 'P' %}
             <a href="{% url 'patient_dashboard' %}">Dashboard</a>
             <a href="{% url 'patient_blog_dashboard' %}">Blog</a>
+            <a href="{% url 'appointments' %}">Appointments</a>
             {% endif %}
             <a href="{% url 'logout' %}">Logout</a>
             <button class="delete" onclick="confirmDelete()">Delete Account</button>

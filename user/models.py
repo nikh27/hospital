@@ -2,6 +2,8 @@
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
+from datetime import datetime, timedelta
 
 class CustomUser(AbstractUser):
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
@@ -40,3 +42,31 @@ class BlogPost(models.Model):
 
     def __str__(self):
         return self.title
+
+class Appointment(models.Model):
+    STATUS_CHOICES = (
+        ('P', 'Pending'),
+        ('A', 'Accepted'),
+        ('R', 'Rejected'),
+    )
+    doctor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='doctor_appointments')
+    patient = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='patient_appointments')
+    speciality = models.CharField(max_length=255)
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(blank=True, null=True)
+    viewed = models.BooleanField(default=False)
+    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P')
+    
+
+    def save(self, *args, **kwargs):
+        if not self.end_time:
+            start_datetime = datetime.combine(self.date, self.start_time)
+            end_datetime = start_datetime + timedelta(minutes=45)
+            self.end_time = end_datetime.time()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Appointment with Dr. {self.doctor.username} on {self.date} at {self.start_time}"

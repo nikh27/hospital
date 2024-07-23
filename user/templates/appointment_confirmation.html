@@ -1,0 +1,158 @@
+{% extends "base2.html" %}
+
+{% block content %}
+    <style>
+        /* CSS for Appointment Confirmation Page */
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #333;
+        }
+
+        .content3 {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status-section .alert {
+            font-size: 1.2rem;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .details-item {
+            margin-bottom: 10px;
+        }
+
+        .details-item label {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .details-item p {
+            font-size: 1.1rem;
+            color: #495057;
+            margin: 5px 0;
+        }
+
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+        }
+
+        .doctor-info, .patient-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .doctor-info img, .patient-info img {
+            margin-right: 15px;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 30px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .back-link:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+    </style>
+
+    <div class="header">
+        <h1>Appointment Details</h1>
+    </div>
+
+    <div class="content3">
+        <!-- Status section -->
+        <div class="status-section">
+            {% if appointment.status == 'P' %}
+                <div class="alert alert-warning">Pending</div>
+            {% elif appointment.status == 'A' %}
+                <div class="alert alert-success">Accepted</div>
+            {% elif appointment.status == 'R' %}
+                <div class="alert alert-danger">Rejected</div>
+            {% endif %}
+        </div>
+
+        <div class="details-grid">
+            <div class="details-item">
+                <label>Doctor's Name:</label>
+                <div class="doctor-info">
+                    <img src="{{ appointment.doctor.profile_picture.url }}" alt="{{ appointment.doctor.get_full_name }}" class="profile-img">
+                    <p>{{ appointment.doctor.get_full_name }}</p>
+                </div>
+            </div>
+            <div class="details-item">
+                <label>Patient's Name:</label>
+                <p>{{ appointment.patient.get_full_name }}</p>
+            </div>
+            <div class="details-item">
+                <label>Speciality:</label>
+                <p>{{ appointment.speciality }}</p>
+            </div>
+            <div class="details-item">
+                <label>Description:</label>
+                <p>{{ appointment.description }}</p>
+            </div>
+            <div class="details-item">
+                <label>Appointment Date:</label>
+                <p>{{ appointment.date }}</p>
+            </div>
+            <div class="details-item">
+                <label>Start Time:</label>
+                <p>{{ appointment.start_time }}</p>
+            </div>
+            <div class="details-item">
+                <label>End Time:</label>
+                <p>{{ appointment.end_time }}</p>
+            </div>
+            <div class="details-item">
+                <label>Created Time:</label>
+                <p>{{ appointment.created_at|date:"Y-m-d H:i" }}</p>
+            </div>
+        </div>
+        <a href="{% url 'appointments' %}" class="back-link">Back to Appointments</a>
+    </div>
+{% endblock %}

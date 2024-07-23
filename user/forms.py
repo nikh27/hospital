@@ -46,3 +46,13 @@ class BlogPostForm(forms.ModelForm):
             'summary': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
         }
+
+class AppointmentForm(forms.ModelForm):
+    class Meta:
+        model = Appointment
+        fields = ['speciality', 'date', 'start_time', 'description']  
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'start_time': forms.TimeInput(attrs={'type': 'time'}),
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }

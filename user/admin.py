@@ -15,3 +15,4 @@ class CustomUserAdmin(UserAdmin):
 
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(BlogPost)
+admin.site.register(Appointment)

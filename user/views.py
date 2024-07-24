@@ -1,11 +1,95 @@
-from django.shortcuts import render, redirect,get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http.response import JsonResponse
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
 from .forms import *
+from django.conf import settings
+from .google_calendar import create_event
+
+import os.path
+from google.auth.transport.requests import Request
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
+
+def get_credentials():
+    creds = None
+    if os.path.exists("token.json"):
+        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file("credentials.json", SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open("token.json", "w") as token:
+            token.write(creds.to_json())
+    return creds
+
+def create_event(summary, location, description, start_datetime, end_datetime, timezone, attendees):
+    creds = get_credentials()
+    service = build("calendar", "v3", credentials=creds)
+    try:
+        event = {
+            "summary": summary,
+            "location": location,
+            "description": description,
+            "start": {"dateTime": start_datetime, "timeZone": timezone},
+            "end": {"dateTime": end_datetime, "timeZone": timezone},
+            "attendees": [{"email": email} for email in attendees]
+        }
+        created_event = service.events().insert(calendarId='primary', body=event).execute()
+        return created_event.get('htmlLink')
+    except HttpError as error:
+        print(f"An error occurred: {error}")
+        return None
+
+def update_appointment_status(request, appointment_id, status):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    appointment.status = status
+    appointment.save()
+
+    if status == 'A':
+        subject = 'Appointment Accepted'
+        message = (
+            f"Dear {appointment.patient.get_full_name()},\n\n"
+            f"We are pleased to inform you that your appointment with Dr. {appointment.doctor.get_full_name()} "
+            f"has been accepted.\n\n"
+            f"Appointment Details:\n"
+            f"Date: {appointment.date}\n"
+            f"Time: {appointment.start_time} - {appointment.end_time} (45 min)\n\n"
+            f"If you have any questions or need to reschedule, please contact us.\n\n"
+            f"Thank you,\n"
+            f"The Healthcare Team"
+        )
+        recipient_list = [appointment.patient.email]
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient_list)
+
+        event_link = create_event(
+            summary=f"Appointment with Dr. {appointment.doctor.get_full_name()}",
+            location="Healthcare Center",
+            description=f"Appointment with Dr. {appointment.doctor.get_full_name()}",
+            start_datetime=f"{appointment.date}T{appointment.start_time}+05:30",
+            end_datetime=f"{appointment.date}T{appointment.end_time}+05:30",
+            timezone='Asia/Kolkata',
+            attendees=[appointment.patient.email]
+        )
+        
+        if event_link:
+            messages.success(request, 'Appointment accepted, email sent to the patient, and event created on Google Calendar.')
+        else:
+            messages.success(request, 'Appointment accepted and email sent to the patient, but failed to create event on Google Calendar.')
+    elif status == 'R':
+        messages.success(request, 'Appointment rejected.')
+
+    return redirect('doctor_appointments')
 
 def signup_view(request):
     if request.method == 'POST':
@@ -51,26 +135,12 @@ def doctor_dashboard(request):
 @login_required
 def doctor_appointments(request):
     user = request.user
-    appointments = Appointment.objects.filter(doctor=user)
+    appointments = Appointment.objects.filter(doctor=user).order_by('-created_at').distinct()
     appointments.update(viewed=True)
     context = {
         'appointments': appointments,
     }
     return render(request, 'doctor_appointments.html', context)
-
-@login_required
-def update_appointment_status(request, appointment_id, status):
-    appointment = Appointment.objects.get(id=appointment_id)
-    if status == 'A':
-        appointment.status = 'Accepted'
-        messages.success(request, 'Appointment accepted successfully.')
-    elif status == 'R':
-        appointment.status = 'Rejected'
-        messages.error(request, 'Appointment rejected.')
-    appointment.save()
-    return redirect('doctor_appointments')
-
-
 
 @login_required
 def patient_dashboard(request):
@@ -107,9 +177,6 @@ def doctor_blog_dashboard(request):
     }
     return render(request, 'doctor_blog_dashboard.html', context)
 
-
-
-
 def patient_blog_dashboard(request):
     query = request.GET.get('query', '')
     category = request.GET.get('category', 'All')
@@ -132,7 +199,6 @@ def patient_blog_dashboard(request):
 
     return render(request, 'patient_blog_dashboard.html', context)
 
-
 @login_required
 def create_blog_post(request):
     if request.user.user_type != 'D':
@@ -148,9 +214,6 @@ def create_blog_post(request):
     else:
         form = BlogPostForm()
     return render(request, 'create_blog_post.html', {'form': form})
-
-
-
 
 @login_required
 def blog_post_detail(request, post_id):
@@ -195,29 +258,15 @@ def delete_blog_post(request, post_id):
     return render(request, 'doctor_dashboard.html', {'user': request.user})
 
 @login_required
-def appointment_page(request):
-    doctors = CustomUser.objects.filter(user_type='D')
-    appointments = Appointment.objects.filter(patient=request.user)
-    return render(request, 'appointment.html', {'doctors': doctors,'appointments':appointments})
-
-@login_required
-def book_appointment(request, doctor_id):
-    doctor = get_object_or_404(CustomUser, id=doctor_id, user_type='D')
-    if request.method == 'POST':
-        form = AppointmentForm(request.POST)
-        if form.is_valid():
-            appointment = form.save(commit=False)
-            appointment.patient = request.user
-            appointment.doctor = doctor
-            appointment.save()
-            return redirect('appointment_confirmation', appointment_id=appointment.id)
-    else:
-        form = AppointmentForm()
-
-    return render(request, 'book_appointment.html', {'form': form, 'doctor': doctor})
-
-@login_required
-def appointment_confirmation(request, appointment_id):
-    appointment = get_object_or_404(Appointment, id=appointment_id)
-    return render(request, 'appointment_confirmation.html', {'appointment': appointment})
-
+def doctor_blog_posts(request):
+    user = request.user
+    posts = BlogPost.objects.filter(author=user, is_draft=False).order_by('-updated_at').distinct()
+    draft_posts = BlogPost.objects.filter(author=user, is_draft=True).order_by('-updated_at').distinct()
+    all_posts = BlogPost.objects.filter(author=user).order_by('-updated_at').distinct()
+    
+    context = {
+        'published_posts': posts,
+        'draft_posts': draft_posts,
+        'all_posts': all_posts,
+    }
+    return render(request, 'doctor_blog_posts.html', context)

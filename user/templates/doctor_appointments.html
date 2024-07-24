@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>/* Styles for the appointments list */
+<style>
+    /* Styles for the appointments list */
     .container {
         max-width: 1200px;
         margin: auto;
@@ -47,9 +48,32 @@
         color: #666;
     }
     
+    .right-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        margin-left: auto;
+    }
+    
+    .status {
+        font-weight: bold;
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+    }
+    
+    .status-accepted {
+        color: #28a745;
+    }
+    
+    .status-rejected {
+        color: #dc3545;
+    }
+    
     .action-buttons {
         display: flex;
         gap: 10px;
+        margin-top: 10px;
     }
     
     .action-buttons .btn {
@@ -83,9 +107,18 @@
     .details-content p {
         margin: 5px 0;
     }
-    </style>
+    
+    .calendar-container {
+        display: none; /* Initially hide the calendar */
+        margin-top: 50px;
+    }
+    .btn-group .btn {
+        margin-right: 10px; /* Adjust the margin as needed */
+    }
+</style>
+
 <div class="container mt-5">
-    <h2>Appointments</h2>
+    <h2>Appointments & Calendar</h2>
     
     <!-- Messages section -->
     {% if messages %}
@@ -98,50 +131,95 @@
         </div>
     {% endif %}
     
-    <ul class="list-group">
-        {% for appointment in appointments %}
-        <li class="list-group-item appointment-item">
-            <div class="d-flex">
-                <!-- Left side with user profile picture and name -->
-                <div class="profile-info">
-                    <img src="{{ appointment.patient.profile_picture.url }}" alt="{{ appointment.patient.get_full_name }}" class="profile-img">
-                    <div class="info">
-                        <h5>{{ appointment.patient.get_full_name }}</h5>
-                        <p>Date: {{ appointment.date }}</p>
-                        <p>Time: {{ appointment.start_time }} - {{ appointment.end_time }} (45 min)</p>
+    <!-- Buttons to toggle between Appointments and Calendar -->
+    <div class="btn-group mt-3" role="group" aria-label="Toggle Appointments and Calendar">
+        <button type="button" class="btn btn-primary toggle-appointments">Appointments</button>
+        <button type="button" class="btn btn-primary toggle-calendar">Calendar</button>
+    </div>
+    
+    <!-- Appointments List -->
+    <div class="appointments-container">
+        <ul class="list-group mt-3">
+            {% for appointment in appointments %}
+            <li class="list-group-item appointment-item">
+                <div class="d-flex align-items-center">
+                    <!-- Left side with user profile picture and name -->
+                    <div class="profile-info">
+                        <img src="{{ appointment.patient.profile_picture.url }}" alt="{{ appointment.patient.get_full_name }}" class="profile-img">
+                        <div class="info">
+                            <h5>{{ appointment.patient.get_full_name }}</h5>
+                            <p>Date: {{ appointment.date }}</p>
+                            <p>Time: {{ appointment.start_time }} - {{ appointment.end_time }} (45 min)</p>
+                        </div>
+                    </div>
+           
+                    <!-- Right side with status and accept/reject buttons -->
+                    <div class="right-info">
+                        <p>Sent: {{ appointment.created_at|date:"Y-m-d H:i" }}</p>
+    
+                            <p class="status {% if appointment.status == 'A' %}status-accepted{% elif appointment.status == 'R' %}status-rejected{% endif %}">
+                                {% if appointment.status == 'A' %}
+                                    Accepted
+                                {% elif appointment.status == 'R' %}
+                                    Rejected
+     
+                            </p>
+                        {% elif appointment.status == 'P'%}
+                            <div class="action-buttons">
+                                <form method="post" action="{% url 'update_appointment_status' appointment.id 'A' %}">
+                                    {% csrf_token %}
+                                    <button class="btn btn-success" type="submit">Accept</button>
+                                </form>
+                                <form method="post" action="{% url 'update_appointment_status' appointment.id 'R' %}">
+                                    {% csrf_token %}
+                                    <button class="btn btn-danger" type="submit">Reject</button>
+                                </form>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
-                
-                <!-- Right side with accept/reject buttons -->
-                {% if appointment.status == 'P' %}
-                <div class="action-buttons">
-                    <form method="post" action="{% url 'update_appointment_status' appointment.id 'A' %}">
-                        {% csrf_token %}
-                        <button class="btn btn-success" type="submit">Accept</button>
-                    </form>
-                    <form method="post" action="{% url 'update_appointment_status' appointment.id 'R' %}">
-                        {% csrf_token %}
-                        <button class="btn btn-danger" type="submit">Reject</button>
-                    </form>
+                <!-- Details section -->
+                <div class="details">
+                    <a href="#" class="details-toggle">More Details</a>
+                    <div class="details-content">
+                        <p><strong>Email:</strong> {{ appointment.patient.email }}</p>
+                        <p><strong>Speciality:</strong> {{ appointment.speciality }}</p>
+                        <p><strong>Description:</strong> {{ appointment.description }}</p>
+                    </div>
                 </div>
-                {% endif %}
-            </div>
-            <!-- Details section -->
-            <div class="details">
-                <a href="#" class="details-toggle">More Details</a>
-                <div class="details-content">
-                    <p><strong>Email:</strong> {{ appointment.patient.email }}</p>
-                    <p><strong>Speciality:</strong> {{ appointment.speciality }}</p>
-                    <p><strong>Description:</strong> {{ appointment.description }}</p>
-                </div>
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <!-- Calendar Section -->
+    <div class="calendar-container mt-3">
+        <h2>Calendar</h2>
+        <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=Asia%2FKolkata&bgcolor=%23ffffff&showTz=0&showTitle=0&src=dGVzdC5xd2VydHk2OTZAZ21haWwuY29t&src=YWRkcmVzc2Jvb2sjY29udGFjdHNAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&src=ZW4uaW5kaWFuI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039BE5&color=%2333B679&color=%230B8043" style="border-width:0" width="800" height="600" frameborder="0" scrolling="no"></iframe>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const appointmentsContainer = document.querySelector('.appointments-container');
+        const calendarContainer = document.querySelector('.calendar-container');
+        
+        // Show appointments and hide calendar initially
+        appointmentsContainer.style.display = 'block';
+        calendarContainer.style.display = 'none';
+        
+        // Toggle between Appointments and Calendar views
+        document.querySelector('.toggle-appointments').addEventListener('click', function() {
+            appointmentsContainer.style.display = 'block';
+            calendarContainer.style.display = 'none';
+        });
+        
+        document.querySelector('.toggle-calendar').addEventListener('click', function() {
+            calendarContainer.style.display = 'block';
+            appointmentsContainer.style.display = 'none';
+        });
+        
+        // Toggle details section
         const toggles = document.querySelectorAll('.details-toggle');
         
         toggles.forEach(toggle => {

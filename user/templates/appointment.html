@@ -79,9 +79,9 @@
             justify-content: space-between;
             align-items: start;
             padding: 20px;
-            border: 1px solid #dee2e6;
+            border: 1px solid #b3abab;
             border-radius: 4px;
-            margin-bottom: 10px;
+            margin-bottom: 30px;
             transition: box-shadow 0.3s;
         }
 
@@ -93,7 +93,7 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            margin-right: 20px;
+            margin-right: 10px;
         }
 
         .list-group-item .ml-3 {
@@ -102,7 +102,7 @@
 
         .list-group-item .charge-info {
             text-align: right;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
         .list-group-item .btn-success {
@@ -214,7 +214,7 @@
 
     <!-- Appointments Section -->
     <div id="appointments" class="appointments">
-        <h2>Your Appointments</h2>
+        <h2>My Appointments</h2>
         {% if appointments %}
             <ul class="list-group">
                 {% for appointment in appointments %}
@@ -225,7 +225,14 @@
                         <p>Time: {{ appointment.start_time }}</p>
                     </div>
                     <div class="appointment-date">
-                        <p>{{ appointment.created_at|date:"Y-m-d H:i" }}</p>
+
+                        {% if appointment.status == 'P' %}
+                            <div class="alert alert-warning">Pending</div>
+                        {% elif appointment.status == 'A' %}
+                            <div class="alert alert-success">Accepted</div>
+                        {% elif appointment.status == 'R' %}
+                            <div class="alert alert-danger">Rejected</div>
+                        {% endif %}
                         <a href="{% url 'appointment_confirmation' appointment_id=appointment.id %}" class="btn btn-details">Details</a>
                     </div>
                 </li>

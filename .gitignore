@@ -7,6 +7,13 @@ venv/
 env/
 /env
 
+# Google API credentials
+token.json
+credentials.json
+
+# Environment files
+.env
+
 # Ignore Django migrations
 */migrations/
 

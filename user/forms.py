@@ -1,5 +1,7 @@
 from django import forms
 from .models import * 
+from django.utils import timezone
+
 
 class CustomUserCreationForm(forms.ModelForm):
     password1 = forms.CharField(
@@ -56,3 +58,6 @@ class AppointmentForm(forms.ModelForm):
             'start_time': forms.TimeInput(attrs={'type': 'time'}),
             'description': forms.Textarea(attrs={'rows': 4}),
         }
+    def __init__(self, *args, **kwargs):
+        super(AppointmentForm, self).__init__(*args, **kwargs)
+        self.fields['date'].widget.attrs.update({'min': timezone.now().date().isoformat()})
